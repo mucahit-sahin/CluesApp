@@ -1,0 +1,20 @@
+{
+  "name": "clues-app",
+  "version": "1.0.0",
+  "description": "A beautiful sticky notes app with connections",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1"
+  }
+}
