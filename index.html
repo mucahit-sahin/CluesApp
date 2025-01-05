@@ -195,6 +195,107 @@
             background: #ff4444;
             color: white;
         }
+
+        .string-types-menu {
+            position: fixed;
+            top: 50px;
+            right: 70px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .string-types-menu.visible {
+            display: flex;
+        }
+
+        .string-type-option {
+            width: 100px;
+            height: 32px;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .string-type-option:hover {
+            background: #f0f0f0;
+        }
+
+        .string-type-option.active {
+            background: #ff4444;
+            color: white;
+        }
+
+        .string-type-option .preview {
+            width: 30px;
+            height: 2px;
+            margin-right: 8px;
+            background: #666;
+        }
+
+        .string-type-option:hover .preview,
+        .string-type-option.active .preview {
+            background: currentColor;
+        }
+
+        .string-type-option[data-type="solid"] .preview {
+            background: #666;
+        }
+
+        .string-type-option[data-type="dashed"] .preview {
+            background: repeating-linear-gradient(
+                90deg,
+                #666,
+                #666 5px,
+                transparent 5px,
+                transparent 10px
+            );
+        }
+
+        .string-type-option[data-type="animated"] .preview {
+            background: repeating-linear-gradient(
+                90deg,
+                #666,
+                #666 5px,
+                #999 5px,
+                #999 10px
+            );
+            background-size: 20px 2px;
+            animation: moveStripes 0.5s linear infinite;
+        }
+
+        @keyframes moveStripes {
+            to {
+                background-position: 20px 0;
+            }
+        }
+
+        .connection-line.solid path {
+            stroke-dasharray: none;
+            animation: none;
+        }
+
+        .connection-line.dashed path {
+            stroke-dasharray: 10;
+            animation: none;
+        }
+
+        .connection-line.animated path {
+            stroke-dasharray: 10;
+            animation: stringDash 30s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -210,6 +311,20 @@
         <button id="addNote">+</button>
         <button id="connectMode">🔗</button>
         <button id="search">🔍</button>
+    </div>
+    <div class="string-types-menu" id="stringTypesMenu">
+        <button class="string-type-option active" data-type="solid">
+            <div class="preview"></div>
+            <span>Solid</span>
+        </button>
+        <button class="string-type-option" data-type="dashed">
+            <div class="preview"></div>
+            <span>Dashed</span>
+        </button>
+        <button class="string-type-option" data-type="animated">
+            <div class="preview"></div>
+            <span>Animated</span>
+        </button>
     </div>
     <script src="renderer.js"></script>
 </body>

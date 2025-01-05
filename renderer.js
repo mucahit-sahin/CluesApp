@@ -3,6 +3,7 @@ const addNoteBtn = document.getElementById("addNote");
 const connectModeBtn = document.getElementById("connectMode");
 const searchBtn = document.getElementById("search");
 const formatToolbar = document.getElementById("formatToolbar");
+const stringTypesMenu = document.getElementById("stringTypesMenu");
 const boldBtn = document.getElementById("boldBtn");
 const italicBtn = document.getElementById("italicBtn");
 const underlineBtn = document.getElementById("underlineBtn");
@@ -15,6 +16,7 @@ let initialX;
 let initialY;
 let selectedNote = null;
 let activeTextArea = null;
+let currentStringType = "solid";
 
 // Connection related variables
 let isConnectionMode = false;
@@ -25,6 +27,57 @@ let connections = [];
 const noteOffsets = new WeakMap();
 
 const noteColors = ["#FFB3BA", "#BAFFC9", "#BAE1FF", "#FFFFBA"];
+
+// Add string type selection handlers
+document.querySelectorAll(".string-type-option").forEach((option) => {
+  option.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent document click handler
+    // Update active state
+    document
+      .querySelectorAll(".string-type-option")
+      .forEach((opt) => opt.classList.remove("active"));
+    option.classList.add("active");
+
+    // Update current string type
+    currentStringType = option.dataset.type;
+  });
+});
+
+// Update connect mode button to show/hide string types menu
+connectModeBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent document click handler
+  isConnectionMode = !isConnectionMode;
+  connectModeBtn.classList.toggle("active");
+  board.classList.toggle("connection-mode");
+  stringTypesMenu.classList.toggle("visible");
+
+  if (!isConnectionMode && startConnectionPoint) {
+    startConnectionPoint.element.style.backgroundColor = "#ff4444";
+    startConnectionPoint = null;
+  }
+});
+
+// Hide string types menu when clicking outside
+document.addEventListener("click", (e) => {
+  if (!isConnectionMode) return;
+
+  const isClickInside =
+    stringTypesMenu.contains(e.target) ||
+    connectModeBtn.contains(e.target) ||
+    e.target.classList.contains("connection-point");
+
+  if (!isClickInside) {
+    stringTypesMenu.classList.remove("visible");
+    isConnectionMode = false;
+    connectModeBtn.classList.remove("active");
+    board.classList.remove("connection-mode");
+
+    if (startConnectionPoint) {
+      startConnectionPoint.element.style.backgroundColor = "#ff4444";
+      startConnectionPoint = null;
+    }
+  }
+});
 
 function createNote(
   x,
@@ -177,12 +230,27 @@ function handleConnectionPointClick(e) {
     };
     connectionPoint.style.backgroundColor = "#00ff00";
   } else if (startConnectionPoint.note !== note) {
-    // Complete connection
-    createConnection(startConnectionPoint, {
-      element: connectionPoint,
-      note: note,
-      position: connectionPoint.dataset.position,
-    });
+    // Check if connection already exists between these notes
+    const existingConnection = connections.find(
+      (conn) =>
+        (conn.start.note === startConnectionPoint.note &&
+          conn.end.note === note) ||
+        (conn.start.note === note &&
+          conn.end.note === startConnectionPoint.note)
+    );
+
+    if (existingConnection) {
+      // Update existing connection type
+      existingConnection.element.className = `connection-line ${currentStringType}`;
+      existingConnection.type = currentStringType;
+    } else {
+      // Create new connection
+      createConnection(startConnectionPoint, {
+        element: connectionPoint,
+        note: note,
+        position: connectionPoint.dataset.position,
+      });
+    }
 
     // Reset start point
     startConnectionPoint.element.style.backgroundColor = "#ff4444";
@@ -192,7 +260,7 @@ function handleConnectionPointClick(e) {
 
 function createConnection(start, end) {
   const connection = document.createElement("div");
-  connection.className = "connection-line";
+  connection.className = `connection-line ${currentStringType}`;
 
   // Create SVG element
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -234,6 +302,7 @@ function createConnection(start, end) {
     path: path,
     start: start,
     end: end,
+    type: currentStringType,
   });
 
   updateConnection(connections[connections.length - 1]);
@@ -332,17 +401,6 @@ addNoteBtn.addEventListener("click", () => {
   const x = Math.random() * (window.innerWidth - 250);
   const y = Math.random() * (window.innerHeight - 250);
   createNote(x, y);
-});
-
-connectModeBtn.addEventListener("click", () => {
-  isConnectionMode = !isConnectionMode;
-  connectModeBtn.classList.toggle("active");
-  board.classList.toggle("connection-mode");
-
-  if (!isConnectionMode && startConnectionPoint) {
-    startConnectionPoint.element.style.backgroundColor = "#ff4444";
-    startConnectionPoint = null;
-  }
 });
 
 // Handle file drag and drop
