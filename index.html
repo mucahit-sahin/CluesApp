@@ -156,6 +156,8 @@
         .connection-line path {
             stroke-dasharray: 10;
             animation: stringDash 30s linear infinite;
+            pointer-events: auto;
+            cursor: pointer;
         }
 
         @keyframes stringDash {
@@ -296,6 +298,40 @@
             stroke-dasharray: 10;
             animation: stringDash 30s linear infinite;
         }
+
+        .context-menu {
+            position: fixed;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            padding: 4px 0;
+            min-width: 120px;
+            z-index: 1002;
+            display: none;
+        }
+
+        .context-menu.visible {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .context-menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .context-menu-item.delete {
+            color: #ff4444;
+        }
     </style>
 </head>
 <body>
@@ -325,6 +361,11 @@
             <div class="preview"></div>
             <span>Animated</span>
         </button>
+    </div>
+    <div class="context-menu" id="connectionMenu">
+        <div class="context-menu-item delete">
+            <span>🗑️ Delete Connection</span>
+        </div>
     </div>
     <script src="renderer.js"></script>
 </body>

@@ -4,6 +4,7 @@ const connectModeBtn = document.getElementById("connectMode");
 const searchBtn = document.getElementById("search");
 const formatToolbar = document.getElementById("formatToolbar");
 const stringTypesMenu = document.getElementById("stringTypesMenu");
+const connectionMenu = document.getElementById("connectionMenu");
 const boldBtn = document.getElementById("boldBtn");
 const italicBtn = document.getElementById("italicBtn");
 const underlineBtn = document.getElementById("underlineBtn");
@@ -17,6 +18,7 @@ let initialY;
 let selectedNote = null;
 let activeTextArea = null;
 let currentStringType = "solid";
+let selectedConnection = null;
 
 // Connection related variables
 let isConnectionMode = false;
@@ -431,3 +433,52 @@ board.addEventListener("drop", (e) => {
     }
   }
 });
+
+// Add context menu functionality
+document.addEventListener("contextmenu", (e) => {
+  e.preventDefault(); // Prevent default context menu
+
+  // Check if clicked on a connection path
+  if (e.target.tagName === "path") {
+    const connection = connections.find((conn) => conn.path === e.target);
+    if (connection) {
+      selectedConnection = connection;
+      showConnectionMenu(e.clientX, e.clientY);
+    }
+  } else {
+    hideConnectionMenu();
+  }
+});
+
+// Hide context menu when clicking outside
+document.addEventListener("click", () => {
+  hideConnectionMenu();
+});
+
+// Add delete functionality
+document
+  .querySelector(".context-menu-item.delete")
+  .addEventListener("click", () => {
+    if (selectedConnection) {
+      // Remove the connection element from DOM
+      selectedConnection.element.remove();
+      // Remove from connections array
+      const index = connections.indexOf(selectedConnection);
+      if (index > -1) {
+        connections.splice(index, 1);
+      }
+      selectedConnection = null;
+      hideConnectionMenu();
+    }
+  });
+
+function showConnectionMenu(x, y) {
+  connectionMenu.style.left = `${x}px`;
+  connectionMenu.style.top = `${y}px`;
+  connectionMenu.classList.add("visible");
+}
+
+function hideConnectionMenu() {
+  connectionMenu.classList.remove("visible");
+  selectedConnection = null;
+}
