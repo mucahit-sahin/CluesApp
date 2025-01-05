@@ -439,6 +439,115 @@
         .notification .icon {
             font-size: 18px;
         }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(3px);
+            transition: opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 28px;
+            width: 340px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-overlay.visible .modal {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 24px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+        }
+
+        .modal input.error {
+            border-color: #ff4444;
+            box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.15);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .modal button:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal button.primary {
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+        }
+
+        .modal button.primary:hover {
+            background: #43a047;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .modal button.secondary {
+            background: var(--menu-hover);
+            color: var(--text-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal button.secondary:hover {
+            background: var(--toolbar-hover);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -499,6 +608,16 @@
         <div class="color-option" data-color="#A8E6CF" style="background-color: #A8E6CF;" title="Vibrant Mint"></div>
         <div class="color-option" data-color="#DCD3FF" style="background-color: #DCD3FF;" title="Vibrant Lavender"></div>
         <div class="color-option" data-color="#FFC8A2" style="background-color: #FFC8A2;" title="Vibrant Peach"></div>
+    </div>
+    <div class="modal-overlay" id="boardNameModal">
+        <div class="modal">
+            <div class="modal-title">Enter Board Name</div>
+            <input type="text" id="boardNameInput" placeholder="My Board">
+            <div class="modal-buttons">
+                <button class="secondary" id="cancelBoardName">Cancel</button>
+                <button class="primary" id="saveBoardName">Save</button>
+            </div>
+        </div>
     </div>
     <script src="renderer.js"></script>
 </body>

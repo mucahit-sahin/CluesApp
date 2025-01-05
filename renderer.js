@@ -14,6 +14,14 @@ const italicBtn = document.getElementById("italicBtn");
 const underlineBtn = document.getElementById("underlineBtn");
 const strikeBtn = document.getElementById("strikeBtn");
 
+// Add board name modal elements
+const boardNameModal = document.getElementById("boardNameModal");
+const boardNameInput = document.getElementById("boardNameInput");
+const saveBoardNameBtn = document.getElementById("saveBoardName");
+const cancelBoardNameBtn = document.getElementById("cancelBoardName");
+
+let boardName = null;
+
 // Initialize theme
 async function initializeTheme() {
   const theme = await ipcRenderer.invoke("get-theme");
@@ -38,6 +46,9 @@ if (boardId) {
 }
 
 function loadBoardData(boardData) {
+  // Store board name
+  boardName = boardData.name;
+
   // Clear existing board
   board.innerHTML = "";
   connections = [];
@@ -88,7 +99,7 @@ function saveBoardData() {
 
   const boardData = {
     id: boardId || Date.now().toString(),
-    name: `Board ${new Date().toLocaleDateString()}`,
+    name: boardName || `Board ${new Date().toLocaleDateString()}`,
     notes,
     connections: connectionData,
   };
@@ -98,8 +109,32 @@ function saveBoardData() {
 
 // Event listeners for save and return
 saveBoardBtn.addEventListener("click", () => {
-  saveBoardData();
-  showNotification("Board saved successfully!");
+  if (!boardId && !boardName) {
+    // First time saving, show modal
+    boardNameModal.classList.add("visible");
+    boardNameInput.focus();
+  } else {
+    saveBoardData();
+    showNotification("Board saved successfully!");
+  }
+});
+
+// Handle board name modal
+saveBoardNameBtn.addEventListener("click", () => {
+  const name = boardNameInput.value.trim();
+  if (name) {
+    boardName = name;
+    boardNameModal.classList.remove("visible");
+    saveBoardData();
+    showNotification("Board saved successfully!");
+  } else {
+    boardNameInput.classList.add("error");
+  }
+});
+
+cancelBoardNameBtn.addEventListener("click", () => {
+  boardNameModal.classList.remove("visible");
+  boardNameInput.value = "";
 });
 
 // Handle board saved response
