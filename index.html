@@ -31,23 +31,75 @@
             position: absolute;
             min-width: 200px;
             min-height: 200px;
-            background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 15px;
-            cursor: move;
+            cursor: default;
             user-select: none;
             z-index: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .note-header {
+            height: 24px;
+            padding: 4px 15px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.05);
         }
 
         .note-content {
-            width: 100%;
-            height: calc(100% - 30px);
+            flex: 1;
+            padding: 15px;
             border: none;
             resize: none;
             font-family: inherit;
             font-size: 14px;
             outline: none;
+            background: transparent;
+            color: rgba(0, 0, 0, 0.8);
+            cursor: text;
+            overflow-y: auto;
+        }
+
+        .format-toolbar {
+            position: absolute;
+            display: none;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 4px;
+            gap: 4px;
+            z-index: 1001;
+        }
+
+        .format-toolbar.visible {
+            display: flex;
+        }
+
+        .format-toolbar button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .format-toolbar button:hover {
+            background: #f0f0f0;
+        }
+
+        .format-toolbar button.active {
+            background: #e0e0e0;
+            color: #000;
         }
 
         .connection-point {
@@ -114,6 +166,12 @@
 <body>
     <div class="titlebar"></div>
     <div class="board" id="board"></div>
+    <div class="format-toolbar" id="formatToolbar">
+        <button id="boldBtn" title="Bold (Ctrl+B)"><strong>B</strong></button>
+        <button id="italicBtn" title="Italic (Ctrl+I)"><em>I</em></button>
+        <button id="underlineBtn" title="Underline (Ctrl+U)"><u>U</u></button>
+        <button id="strikeBtn" title="Strikethrough (Ctrl+S)"><s>S</s></button>
+    </div>
     <div class="toolbar">
         <button id="addNote">+</button>
         <button id="connectMode">🔗</button>

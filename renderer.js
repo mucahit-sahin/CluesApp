@@ -2,6 +2,11 @@ const board = document.getElementById("board");
 const addNoteBtn = document.getElementById("addNote");
 const connectModeBtn = document.getElementById("connectMode");
 const searchBtn = document.getElementById("search");
+const formatToolbar = document.getElementById("formatToolbar");
+const boldBtn = document.getElementById("boldBtn");
+const italicBtn = document.getElementById("italicBtn");
+const underlineBtn = document.getElementById("underlineBtn");
+const strikeBtn = document.getElementById("strikeBtn");
 
 let isDragging = false;
 let currentX;
@@ -9,6 +14,7 @@ let currentY;
 let initialX;
 let initialY;
 let selectedNote = null;
+let activeTextArea = null;
 
 // Connection related variables
 let isConnectionMode = false;
@@ -34,9 +40,19 @@ function createNote(
   // Initialize offset for this note
   noteOffsets.set(note, { x: x, y: y });
 
-  const textarea = document.createElement("textarea");
+  // Add header for dragging
+  const header = document.createElement("div");
+  header.className = "note-header";
+  note.appendChild(header);
+
+  const textarea = document.createElement("div");
   textarea.className = "note-content";
-  textarea.placeholder = "Write your note here...";
+  textarea.contentEditable = true;
+  textarea.setAttribute("placeholder", "Write your note here...");
+  textarea.addEventListener("focus", handleTextAreaFocus);
+  textarea.addEventListener("blur", handleTextAreaBlur);
+  textarea.addEventListener("mouseup", updateFormatToolbarPosition);
+  textarea.addEventListener("keyup", updateFormatToolbarPosition);
   note.appendChild(textarea);
 
   // Add connection points
@@ -71,14 +87,102 @@ function createNote(
 
   board.appendChild(note);
 
-  // Add drag functionality
-  note.addEventListener("mousedown", dragStart);
-  note.addEventListener("mousemove", drag);
-  note.addEventListener("mouseup", dragEnd);
-  note.addEventListener("mouseleave", dragEnd);
+  // Add drag functionality only for mousedown
+  header.addEventListener("mousedown", dragStart);
 
   return note;
 }
+
+function handleTextAreaFocus(e) {
+  activeTextArea = e.target;
+  updateFormatToolbarPosition();
+}
+
+function handleTextAreaBlur(e) {
+  // Small delay to allow button clicks to register
+  setTimeout(() => {
+    if (!formatToolbar.contains(document.activeElement)) {
+      formatToolbar.classList.remove("visible");
+      activeTextArea = null;
+    }
+  }, 100);
+}
+
+function updateFormatToolbarPosition() {
+  if (!activeTextArea) return;
+
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+
+  const range = selection.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+
+  if (rect.width === 0) {
+    // No text selected, position toolbar at cursor
+    const textRect = activeTextArea.getBoundingClientRect();
+    formatToolbar.style.top = `${textRect.top - 40}px`;
+    formatToolbar.style.left = `${textRect.left}px`;
+  } else {
+    // Position toolbar above selection
+    formatToolbar.style.top = `${rect.top - 40}px`;
+    formatToolbar.style.left = `${
+      rect.left + (rect.width - formatToolbar.offsetWidth) / 2
+    }px`;
+  }
+
+  formatToolbar.classList.add("visible");
+  updateFormatButtonStates();
+}
+
+function updateFormatButtonStates() {
+  boldBtn.classList.toggle("active", document.queryCommandState("bold"));
+  italicBtn.classList.toggle("active", document.queryCommandState("italic"));
+  underlineBtn.classList.toggle(
+    "active",
+    document.queryCommandState("underline")
+  );
+  strikeBtn.classList.toggle(
+    "active",
+    document.queryCommandState("strikethrough")
+  );
+}
+
+function formatText(command) {
+  document.execCommand(command, false, null);
+  updateFormatButtonStates();
+}
+
+// Format button event listeners
+boldBtn.addEventListener("click", () => formatText("bold"));
+italicBtn.addEventListener("click", () => formatText("italic"));
+underlineBtn.addEventListener("click", () => formatText("underline"));
+strikeBtn.addEventListener("click", () => formatText("strikethrough"));
+
+// Keyboard shortcuts
+document.addEventListener("keydown", (e) => {
+  if (!activeTextArea) return;
+
+  if (e.ctrlKey) {
+    switch (e.key.toLowerCase()) {
+      case "b":
+        e.preventDefault();
+        formatText("bold");
+        break;
+      case "i":
+        e.preventDefault();
+        formatText("italic");
+        break;
+      case "u":
+        e.preventDefault();
+        formatText("underline");
+        break;
+      case "s":
+        e.preventDefault();
+        formatText("strikethrough");
+        break;
+    }
+  }
+});
 
 function handleConnectionPointClick(e) {
   if (!isConnectionMode) return;
@@ -147,11 +251,7 @@ function updateAllConnections() {
 }
 
 function dragStart(e) {
-  if (
-    e.target.className === "note-content" ||
-    e.target.className === "connection-point"
-  )
-    return;
+  if (e.target.className !== "note-header") return;
 
   selectedNote = e.target.closest(".note");
   if (!selectedNote) return;
@@ -161,9 +261,13 @@ function dragStart(e) {
   initialY = e.clientY - offset.y;
 
   isDragging = true;
+
+  // Prevent text selection during drag
+  e.preventDefault();
 }
 
-function drag(e) {
+// Move mousemove and mouseup listeners to window level
+window.addEventListener("mousemove", (e) => {
   if (!isDragging || !selectedNote) return;
 
   e.preventDefault();
@@ -175,12 +279,12 @@ function drag(e) {
 
   setTranslate(currentX, currentY, selectedNote);
   updateAllConnections();
-}
+});
 
-function dragEnd(e) {
+window.addEventListener("mouseup", () => {
   isDragging = false;
   selectedNote = null;
-}
+});
 
 function setTranslate(xPos, yPos, el) {
   el.style.left = `${xPos}px`;
