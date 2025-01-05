@@ -1,7 +1,10 @@
+const { ipcRenderer } = require("electron");
 const board = document.getElementById("board");
 const addNoteBtn = document.getElementById("addNote");
 const connectModeBtn = document.getElementById("connectMode");
 const searchBtn = document.getElementById("search");
+const saveBoardBtn = document.getElementById("saveBoard");
+const returnHomeBtn = document.getElementById("returnHome");
 const formatToolbar = document.getElementById("formatToolbar");
 const stringTypesMenu = document.getElementById("stringTypesMenu");
 const connectionMenu = document.getElementById("connectionMenu");
@@ -9,6 +12,94 @@ const boldBtn = document.getElementById("boldBtn");
 const italicBtn = document.getElementById("italicBtn");
 const underlineBtn = document.getElementById("underlineBtn");
 const strikeBtn = document.getElementById("strikeBtn");
+
+// Get board ID from URL if it exists
+const urlParams = new URLSearchParams(window.location.search);
+const boardId = urlParams.get("id");
+
+// Load board data if editing existing board
+if (boardId) {
+  ipcRenderer.invoke("get-saved-boards").then((savedBoards) => {
+    const boardData = savedBoards.find((board) => board.id === boardId);
+    if (boardData) {
+      loadBoardData(boardData);
+    }
+  });
+}
+
+function loadBoardData(boardData) {
+  // Clear existing board
+  board.innerHTML = "";
+  connections = [];
+
+  // Create a map to store note elements by their IDs
+  const noteElements = new Map();
+
+  // Recreate notes
+  boardData.notes.forEach((noteData) => {
+    const note = createNote(noteData.x, noteData.y, noteData.color);
+    note.dataset.id = noteData.id;
+    note.querySelector(".note-content").innerHTML = noteData.content;
+    noteElements.set(noteData.id, note);
+  });
+
+  // Recreate connections
+  boardData.connections.forEach((connData) => {
+    const startNote = noteElements.get(connData.startNoteId);
+    const endNote = noteElements.get(connData.endNoteId);
+
+    if (startNote && endNote) {
+      const startPoint = startNote.querySelector(".connection-point");
+      const endPoint = endNote.querySelector(".connection-point");
+
+      currentStringType = connData.type;
+      createConnection(
+        { element: startPoint, note: startNote },
+        { element: endPoint, note: endNote }
+      );
+    }
+  });
+}
+
+function saveBoardData() {
+  const notes = Array.from(document.querySelectorAll(".note")).map((note) => ({
+    id: note.dataset.id || Date.now().toString(),
+    x: parseInt(note.style.left),
+    y: parseInt(note.style.top),
+    color: note.style.backgroundColor,
+    content: note.querySelector(".note-content").innerHTML,
+  }));
+
+  const connectionData = connections.map((conn) => ({
+    startNoteId: conn.start.note.dataset.id,
+    endNoteId: conn.end.note.dataset.id,
+    type: conn.type,
+  }));
+
+  const boardData = {
+    id: boardId || Date.now().toString(),
+    name: `Board ${new Date().toLocaleDateString()}`,
+    notes,
+    connections: connectionData,
+  };
+
+  ipcRenderer.send("save-board", boardData);
+}
+
+// Event listeners for save and return
+saveBoardBtn.addEventListener("click", () => {
+  saveBoardData();
+  showNotification("Board saved successfully!");
+});
+
+// Handle board saved response
+ipcRenderer.on("board-saved", (event, savedBoardId) => {
+  boardId = savedBoardId;
+});
+
+returnHomeBtn.addEventListener("click", () => {
+  ipcRenderer.send("return-to-home");
+});
 
 let isDragging = false;
 let currentX;
@@ -29,6 +120,52 @@ let connections = [];
 const noteOffsets = new WeakMap();
 
 const noteColors = ["#FFB3BA", "#BAFFC9", "#BAE1FF", "#FFFFBA"];
+
+function createNote(
+  x,
+  y,
+  color = noteColors[Math.floor(Math.random() * noteColors.length)]
+) {
+  const note = document.createElement("div");
+  note.className = "note";
+  note.dataset.id = Date.now().toString();
+  note.style.left = `${x}px`;
+  note.style.top = `${y}px`;
+  note.style.backgroundColor = color;
+
+  // Initialize offset for this note
+  noteOffsets.set(note, { x: x, y: y });
+
+  // Add header for dragging
+  const header = document.createElement("div");
+  header.className = "note-header";
+  note.appendChild(header);
+
+  const textarea = document.createElement("div");
+  textarea.className = "note-content";
+  textarea.contentEditable = true;
+  textarea.setAttribute("placeholder", "Write your note here...");
+  textarea.addEventListener("focus", handleTextAreaFocus);
+  textarea.addEventListener("blur", handleTextAreaBlur);
+  textarea.addEventListener("mouseup", updateFormatToolbarPosition);
+  textarea.addEventListener("keyup", updateFormatToolbarPosition);
+  note.appendChild(textarea);
+
+  // Add connection point at the pin
+  const connectionPoint = document.createElement("div");
+  connectionPoint.className = "connection-point";
+  connectionPoint.style.right = "15px";
+  connectionPoint.style.top = "4px";
+  connectionPoint.addEventListener("click", handleConnectionPointClick);
+  note.appendChild(connectionPoint);
+
+  board.appendChild(note);
+
+  // Add drag functionality only for mousedown
+  header.addEventListener("mousedown", dragStart);
+
+  return note;
+}
 
 // Add string type selection handlers
 document.querySelectorAll(".string-type-option").forEach((option) => {
@@ -80,51 +217,6 @@ document.addEventListener("click", (e) => {
     }
   }
 });
-
-function createNote(
-  x,
-  y,
-  color = noteColors[Math.floor(Math.random() * noteColors.length)]
-) {
-  const note = document.createElement("div");
-  note.className = "note";
-  note.style.left = `${x}px`;
-  note.style.top = `${y}px`;
-  note.style.backgroundColor = color;
-
-  // Initialize offset for this note
-  noteOffsets.set(note, { x: x, y: y });
-
-  // Add header for dragging
-  const header = document.createElement("div");
-  header.className = "note-header";
-  note.appendChild(header);
-
-  const textarea = document.createElement("div");
-  textarea.className = "note-content";
-  textarea.contentEditable = true;
-  textarea.setAttribute("placeholder", "Write your note here...");
-  textarea.addEventListener("focus", handleTextAreaFocus);
-  textarea.addEventListener("blur", handleTextAreaBlur);
-  textarea.addEventListener("mouseup", updateFormatToolbarPosition);
-  textarea.addEventListener("keyup", updateFormatToolbarPosition);
-  note.appendChild(textarea);
-
-  // Add connection point at the pin
-  const connectionPoint = document.createElement("div");
-  connectionPoint.className = "connection-point";
-  connectionPoint.style.right = "15px";
-  connectionPoint.style.top = "4px";
-  connectionPoint.addEventListener("click", handleConnectionPointClick);
-  note.appendChild(connectionPoint);
-
-  board.appendChild(note);
-
-  // Add drag functionality only for mousedown
-  header.addEventListener("mousedown", dragStart);
-
-  return note;
-}
 
 function handleTextAreaFocus(e) {
   activeTextArea = e.target;
@@ -481,4 +573,32 @@ function showConnectionMenu(x, y) {
 function hideConnectionMenu() {
   connectionMenu.classList.remove("visible");
   selectedConnection = null;
+}
+
+function showNotification(message) {
+  // Remove existing notification if any
+  const existingNotification = document.querySelector(".notification");
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+
+  // Create notification element
+  const notification = document.createElement("div");
+  notification.className = "notification";
+  notification.innerHTML = `
+    <span class="icon">✅</span>
+    <span class="message">${message}</span>
+  `;
+
+  // Add to document
+  document.body.appendChild(notification);
+
+  // Trigger animation
+  setTimeout(() => notification.classList.add("show"), 100);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove("show");
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
 }

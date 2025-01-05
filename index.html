@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Clue Board</title>
+    <title>Clues App</title>
     <style>
         body {
             margin: 0;
@@ -20,353 +20,175 @@
             padding: 0 10px;
         }
 
-        .board {
-            position: relative;
-            width: 100vw;
-            height: calc(100vh - 38px);
-            overflow: hidden;
-        }
-
-        .note {
-            position: absolute;
-            min-width: 200px;
-            min-height: 200px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            cursor: default;
-            user-select: none;
-            z-index: 2;
+        .container {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            transform-origin: top right;
-            transition: transform 0.2s ease;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 38px);
+            gap: 20px;
         }
 
-        .note::before {
-            content: '';
-            position: absolute;
-            top: 4px;
-            right: 15px;
-            width: 16px;
-            height: 16px;
-            background: radial-gradient(circle at center, #ff4444 30%, #cc0000 100%);
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            z-index: 4;
+        .welcome-text {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
         }
 
-        .note:hover {
-            transform: rotate(-1deg);
+        .options {
+            display: flex;
+            gap: 20px;
         }
 
-        .note-header {
-            height: 24px;
-            padding: 4px 15px;
-            cursor: move;
+        .option-card {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .option-card .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .option-card .title {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .boards-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .boards-container.visible {
+            display: flex;
+        }
+
+        .boards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #f0f0f0;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            background-color: rgba(0, 0, 0, 0.05);
+            gap: 8px;
         }
 
-        .note-content {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            resize: none;
-            font-family: inherit;
-            font-size: 14px;
-            outline: none;
-            background: transparent;
-            color: rgba(0, 0, 0, 0.8);
-            cursor: text;
-            overflow-y: auto;
+        .back-button:hover {
+            background: #e0e0e0;
         }
 
-        .format-toolbar {
-            position: absolute;
-            display: none;
+        .boards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .board-card {
             background: white;
-            border-radius: 4px;
+            border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 4px;
-            gap: 4px;
-            z-index: 1001;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .format-toolbar.visible {
-            display: flex;
+        .board-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .format-toolbar button {
-            width: 28px;
-            height: 28px;
+        .board-card .title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .board-card .date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .board-card .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
             border: none;
-            background: transparent;
-            border-radius: 4px;
+            background: #ff4444;
+            color: white;
+            font-size: 14px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .format-toolbar button:hover {
-            background: #f0f0f0;
-        }
-
-        .format-toolbar button.active {
-            background: #e0e0e0;
-            color: #000;
-        }
-
-        .connection-point {
-            width: 16px;
-            height: 16px;
-            position: absolute;
-            cursor: pointer;
             opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 5;
-            right: 15px;
-            top: 4px;
+            transition: opacity 0.2s;
         }
 
-        .connection-mode .connection-point {
+        .board-card:hover .delete-btn {
             opacity: 1;
         }
 
-        .connection-point:hover {
-            transform: scale(1.1);
-        }
-
-        .connection-line {
-            position: absolute;
-            pointer-events: none;
-            z-index: 3;
-            width: 100%;
-            height: 100%;
-        }
-
-        .connection-line svg {
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
-        }
-
-        .connection-line path {
-            stroke-dasharray: 10;
-            animation: stringDash 30s linear infinite;
-            pointer-events: auto;
-            cursor: pointer;
-        }
-
-        @keyframes stringDash {
-            to {
-                stroke-dashoffset: 1000;
-            }
-        }
-
-        .toolbar {
-            position: fixed;
-            top: 50px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 1000;
-        }
-
-        .toolbar button {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            border: none;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .toolbar button:hover {
-            background: #f0f0f0;
-        }
-
-        .toolbar button.active {
-            background: #ff4444;
-            color: white;
-        }
-
-        .string-types-menu {
-            position: fixed;
-            top: 50px;
-            right: 70px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 8px;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 1000;
-        }
-
-        .string-types-menu.visible {
-            display: flex;
-        }
-
-        .string-type-option {
-            width: 100px;
-            height: 32px;
-            border: none;
-            border-radius: 4px;
-            background: transparent;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            padding: 0 8px;
-            font-size: 13px;
-            color: #666;
-            transition: all 0.2s ease;
-        }
-
-        .string-type-option:hover {
-            background: #f0f0f0;
-        }
-
-        .string-type-option.active {
-            background: #ff4444;
-            color: white;
-        }
-
-        .string-type-option .preview {
-            width: 30px;
-            height: 2px;
-            margin-right: 8px;
-            background: #666;
-        }
-
-        .string-type-option:hover .preview,
-        .string-type-option.active .preview {
-            background: currentColor;
-        }
-
-        .string-type-option[data-type="solid"] .preview {
-            background: #666;
-        }
-
-        .string-type-option[data-type="dashed"] .preview {
-            background: repeating-linear-gradient(
-                90deg,
-                #666,
-                #666 5px,
-                transparent 5px,
-                transparent 10px
-            );
-        }
-
-        .string-type-option[data-type="animated"] .preview {
-            background: repeating-linear-gradient(
-                90deg,
-                #666,
-                #666 5px,
-                #999 5px,
-                #999 10px
-            );
-            background-size: 20px 2px;
-            animation: moveStripes 0.5s linear infinite;
-        }
-
-        @keyframes moveStripes {
-            to {
-                background-position: 20px 0;
-            }
-        }
-
-        .connection-line.solid path {
-            stroke-dasharray: none;
-            animation: none;
-        }
-
-        .connection-line.dashed path {
-            stroke-dasharray: 10;
-            animation: none;
-        }
-
-        .connection-line.animated path {
-            stroke-dasharray: 10;
-            animation: stringDash 30s linear infinite;
-        }
-
-        .context-menu {
-            position: fixed;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            padding: 4px 0;
-            min-width: 120px;
-            z-index: 1002;
-            display: none;
-        }
-
-        .context-menu.visible {
-            display: block;
-        }
-
-        .context-menu-item {
-            padding: 8px 12px;
-            font-size: 13px;
-            color: #333;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s;
-        }
-
-        .context-menu-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .context-menu-item.delete {
-            color: #ff4444;
+        .board-card .delete-btn:hover {
+            background: #cc0000;
         }
     </style>
 </head>
 <body>
     <div class="titlebar"></div>
-    <div class="board" id="board"></div>
-    <div class="format-toolbar" id="formatToolbar">
-        <button id="boldBtn" title="Bold (Ctrl+B)"><strong>B</strong></button>
-        <button id="italicBtn" title="Italic (Ctrl+I)"><em>I</em></button>
-        <button id="underlineBtn" title="Underline (Ctrl+U)"><u>U</u></button>
-        <button id="strikeBtn" title="Strikethrough (Ctrl+S)"><s>S</s></button>
-    </div>
-    <div class="toolbar">
-        <button id="addNote">+</button>
-        <button id="connectMode">🔗</button>
-        <button id="search">🔍</button>
-    </div>
-    <div class="string-types-menu" id="stringTypesMenu">
-        <button class="string-type-option active" data-type="solid">
-            <div class="preview"></div>
-            <span>Solid</span>
-        </button>
-        <button class="string-type-option" data-type="dashed">
-            <div class="preview"></div>
-            <span>Dashed</span>
-        </button>
-        <button class="string-type-option" data-type="animated">
-            <div class="preview"></div>
-            <span>Animated</span>
-        </button>
-    </div>
-    <div class="context-menu" id="connectionMenu">
-        <div class="context-menu-item delete">
-            <span>🗑️ Delete Connection</span>
+    <div class="container">
+        <div class="welcome-text">Welcome to Clues App</div>
+        <div class="options">
+            <div class="option-card" id="newBoard">
+                <div class="icon">📝</div>
+                <div class="title">New Board</div>
+            </div>
+            <div class="option-card" id="savedBoards">
+                <div class="icon">📂</div>
+                <div class="title">Saved Boards</div>
+            </div>
+        </div>
+        <div class="boards-container" id="boardsContainer">
+            <div class="boards-header">
+                <button class="back-button" id="backButton">
+                    ← Back
+                </button>
+                <h2>Saved Boards</h2>
+            </div>
+            <div class="boards-grid" id="boardsGrid">
+                <!-- Saved boards will be loaded here -->
+            </div>
         </div>
     </div>
-    <script src="renderer.js"></script>
+    <script src="home.js"></script>
 </body>
 </html> 

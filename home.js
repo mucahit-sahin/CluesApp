@@ -1,0 +1,71 @@
+const { ipcRenderer } = require("electron");
+const newBoardBtn = document.getElementById("newBoard");
+const savedBoardsBtn = document.getElementById("savedBoards");
+const boardsContainer = document.getElementById("boardsContainer");
+const boardsGrid = document.getElementById("boardsGrid");
+const backButton = document.getElementById("backButton");
+const optionsContainer = document.querySelector(".options");
+
+// Load saved boards using IPC
+async function loadSavedBoards() {
+  const savedBoards = await ipcRenderer.invoke("get-saved-boards");
+  boardsGrid.innerHTML = "";
+
+  if (savedBoards.length === 0) {
+    boardsGrid.innerHTML =
+      '<div style="text-align: center; color: #666;">No saved boards yet</div>';
+    return;
+  }
+
+  savedBoards.forEach((board) => {
+    const boardCard = document.createElement("div");
+    boardCard.className = "board-card";
+    boardCard.style.position = "relative";
+    boardCard.innerHTML = `
+      <div class="title">${board.name}</div>
+      <div class="date">Last edited: ${new Date(
+        board.lastEdited
+      ).toLocaleDateString()}</div>
+      <button class="delete-btn" title="Delete Board">×</button>
+    `;
+
+    // Add click event for opening the board
+    boardCard.addEventListener("click", (e) => {
+      // Don't open board if delete button was clicked
+      if (!e.target.classList.contains("delete-btn")) {
+        ipcRenderer.send("open-board", board.id);
+      }
+    });
+
+    // Add delete functionality
+    const deleteBtn = boardCard.querySelector(".delete-btn");
+    deleteBtn.addEventListener("click", async (e) => {
+      e.stopPropagation(); // Prevent board from opening
+      if (confirm("Are you sure you want to delete this board?")) {
+        const updatedBoards = await ipcRenderer.invoke(
+          "delete-board",
+          board.id
+        );
+        loadSavedBoards(); // Reload the board list
+      }
+    });
+
+    boardsGrid.appendChild(boardCard);
+  });
+}
+
+// Event Listeners
+newBoardBtn.addEventListener("click", () => {
+  ipcRenderer.send("new-board");
+});
+
+savedBoardsBtn.addEventListener("click", () => {
+  optionsContainer.style.display = "none";
+  boardsContainer.classList.add("visible");
+  loadSavedBoards();
+});
+
+backButton.addEventListener("click", () => {
+  boardsContainer.classList.remove("visible");
+  optionsContainer.style.display = "flex";
+});
