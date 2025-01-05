@@ -4,6 +4,7 @@ const fs = require("fs");
 
 let mainWindow;
 const dataPath = path.join(app.getPath("userData"), "boards.json");
+const themePath = path.join(app.getPath("userData"), "theme.json");
 
 // Helper function to read boards data
 function readBoardsData() {
@@ -25,6 +26,29 @@ function writeBoardsData(data) {
     fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
   } catch (error) {
     console.error("Error writing boards data:", error);
+  }
+}
+
+// Helper function to read theme preference
+function readThemePreference() {
+  try {
+    if (fs.existsSync(themePath)) {
+      const data = fs.readFileSync(themePath, "utf8");
+      return JSON.parse(data).theme;
+    }
+    return "light"; // Default theme
+  } catch (error) {
+    console.error("Error reading theme preference:", error);
+    return "light";
+  }
+}
+
+// Helper function to write theme preference
+function writeThemePreference(theme) {
+  try {
+    fs.writeFileSync(themePath, JSON.stringify({ theme }));
+  } catch (error) {
+    console.error("Error writing theme preference:", error);
   }
 }
 
@@ -108,4 +132,14 @@ ipcMain.handle("delete-board", (event, boardId) => {
 
 ipcMain.on("return-to-home", () => {
   mainWindow.loadFile("index.html");
+});
+
+// Add theme handlers
+ipcMain.handle("get-theme", () => {
+  return readThemePreference();
+});
+
+ipcMain.handle("set-theme", (event, theme) => {
+  writeThemePreference(theme);
+  return theme;
 });

@@ -5,6 +5,30 @@ const boardsContainer = document.getElementById("boardsContainer");
 const boardsGrid = document.getElementById("boardsGrid");
 const backButton = document.getElementById("backButton");
 const optionsContainer = document.querySelector(".options");
+const themeToggle = document.getElementById("themeToggle");
+
+// Theme handling
+let currentTheme = "light";
+
+async function initializeTheme() {
+  currentTheme = await ipcRenderer.invoke("get-theme");
+  document.documentElement.dataset.theme = currentTheme;
+  updateThemeIcon();
+}
+
+function updateThemeIcon() {
+  themeToggle.textContent = currentTheme === "light" ? "🌞" : "🌙";
+}
+
+themeToggle.addEventListener("click", async () => {
+  currentTheme = currentTheme === "light" ? "dark" : "light";
+  document.documentElement.dataset.theme = currentTheme;
+  await ipcRenderer.invoke("set-theme", currentTheme);
+  updateThemeIcon();
+});
+
+// Initialize theme on load
+initializeTheme();
 
 // Load saved boards using IPC
 async function loadSavedBoards() {

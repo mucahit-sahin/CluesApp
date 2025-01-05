@@ -3,12 +3,35 @@
 <head>
     <title>Clues App</title>
     <style>
+        :root {
+            /* Light theme variables */
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --secondary-text: #666;
+            --card-bg: white;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --hover-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            --border-color: #ddd;
+        }
+
+        :root[data-theme="dark"] {
+            /* Dark theme variables */
+            --bg-color: #1a1a1a;
+            --text-color: #fff;
+            --secondary-text: #aaa;
+            --card-bg: #2d2d2d;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            --border-color: #444;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f5;
-            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .titlebar {
@@ -31,7 +54,7 @@
 
         .welcome-text {
             font-size: 24px;
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 20px;
         }
 
@@ -43,20 +66,21 @@
         .option-card {
             width: 200px;
             height: 200px;
-            background: white;
+            background-color: var(--card-bg);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            color: var(--text-color);
         }
 
         .option-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: var(--hover-shadow);
         }
 
         .option-card .icon {
@@ -66,7 +90,7 @@
 
         .option-card .title {
             font-size: 18px;
-            color: #333;
+            color: var(--text-color);
         }
 
         .boards-container {
@@ -111,9 +135,9 @@
         }
 
         .board-card {
-            background: white;
+            background-color: var(--card-bg);
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             padding: 16px;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -121,18 +145,18 @@
 
         .board-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: var(--hover-shadow);
         }
 
         .board-card .title {
             font-size: 16px;
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 8px;
         }
 
         .board-card .date {
             font-size: 12px;
-            color: #666;
+            color: var(--secondary-text);
         }
 
         .board-card .delete-btn {
@@ -161,10 +185,32 @@
         .board-card .delete-btn:hover {
             background: #cc0000;
         }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            border: none;
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
-    <div class="titlebar"></div>
     <div class="container">
         <div class="welcome-text">Welcome to Clues App</div>
         <div class="options">
@@ -189,6 +235,7 @@
             </div>
         </div>
     </div>
+    <button class="theme-toggle" id="themeToggle">🌞</button>
     <script src="home.js"></script>
 </body>
 </html> 

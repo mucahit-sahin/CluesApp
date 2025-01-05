@@ -13,6 +13,15 @@ const italicBtn = document.getElementById("italicBtn");
 const underlineBtn = document.getElementById("underlineBtn");
 const strikeBtn = document.getElementById("strikeBtn");
 
+// Initialize theme
+async function initializeTheme() {
+  const theme = await ipcRenderer.invoke("get-theme");
+  document.documentElement.dataset.theme = theme;
+}
+
+// Initialize theme on load
+initializeTheme();
+
 // Get board ID from URL if it exists
 const urlParams = new URLSearchParams(window.location.search);
 const boardId = urlParams.get("id");

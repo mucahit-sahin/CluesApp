@@ -3,12 +3,52 @@
 <head>
     <title>Clue Board</title>
     <style>
+        :root {
+            /* Light theme variables */
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --secondary-text: #666;
+            --card-bg: white;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --hover-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            --border-color: #ddd;
+            --toolbar-bg: white;
+            --toolbar-hover: #f0f0f0;
+            --toolbar-active: #ff4444;
+            --menu-bg: white;
+            --menu-hover: #f0f0f0;
+            --menu-text: #666;
+            --note-header-bg: rgba(0, 0, 0, 0.05);
+            --note-text: rgba(0, 0, 0, 0.8);
+        }
+
+        :root[data-theme="dark"] {
+            /* Dark theme variables */
+            --bg-color: #1a1a1a;
+            --text-color: #fff;
+            --secondary-text: #aaa;
+            --card-bg: #2d2d2d;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            --border-color: #444;
+            --toolbar-bg: #2d2d2d;
+            --toolbar-hover: #3d3d3d;
+            --toolbar-active: #ff4444;
+            --menu-bg: #2d2d2d;
+            --menu-hover: #3d3d3d;
+            --menu-text: #aaa;
+            --note-header-bg: rgba(255, 255, 255, 0.05);
+            --note-text: rgba(255, 255, 255, 0.8);
+        }
+
         body {
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f5;
+            background-color: var(--bg-color);
             overflow: hidden;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .titlebar {
@@ -32,7 +72,7 @@
             min-width: 200px;
             min-height: 200px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             cursor: default;
             user-select: none;
             z-index: 2;
@@ -66,7 +106,7 @@
             cursor: move;
             display: flex;
             align-items: center;
-            background-color: rgba(0, 0, 0, 0.05);
+            background-color: var(--note-header-bg);
         }
 
         .note-content {
@@ -78,7 +118,7 @@
             font-size: 14px;
             outline: none;
             background: transparent;
-            color: rgba(0, 0, 0, 0.8);
+            color: var(--note-text);
             cursor: text;
             overflow-y: auto;
         }
@@ -86,12 +126,13 @@
         .format-toolbar {
             position: absolute;
             display: none;
-            background: white;
+            background: var(--menu-bg);
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 4px;
             gap: 4px;
             z-index: 1001;
+            color: var(--text-color);
         }
 
         .format-toolbar.visible {
@@ -109,11 +150,11 @@
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            color: #666;
+            color: var(--menu-text);
         }
 
         .format-toolbar button:hover {
-            background: #f0f0f0;
+            background: var(--menu-hover);
         }
 
         .format-toolbar button.active {
@@ -181,20 +222,21 @@
             height: 40px;
             border-radius: 20px;
             border: none;
-            background: white;
+            background: var(--toolbar-bg);
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-color);
         }
 
         .toolbar button:hover {
-            background: #f0f0f0;
+            background: var(--toolbar-hover);
         }
 
         .toolbar button.active {
-            background: #ff4444;
+            background: var(--toolbar-active);
             color: white;
         }
 
@@ -202,7 +244,7 @@
             position: fixed;
             top: 50px;
             right: 70px;
-            background: white;
+            background: var(--menu-bg);
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 8px;
@@ -227,12 +269,12 @@
             align-items: center;
             padding: 0 8px;
             font-size: 13px;
-            color: #666;
+            color: var(--menu-text);
             transition: all 0.2s ease;
         }
 
         .string-type-option:hover {
-            background: #f0f0f0;
+            background: var(--menu-hover);
         }
 
         .string-type-option.active {
@@ -301,7 +343,7 @@
 
         .context-menu {
             position: fixed;
-            background: white;
+            background: var(--menu-bg);
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             padding: 4px 0;
@@ -317,7 +359,7 @@
         .context-menu-item {
             padding: 8px 12px;
             font-size: 13px;
-            color: #333;
+            color: var(--text-color);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -326,7 +368,7 @@
         }
 
         .context-menu-item:hover {
-            background-color: #f0f0f0;
+            background: var(--menu-hover);
         }
 
         .context-menu-item.delete {
