@@ -130,7 +130,17 @@ let connections = [];
 // Store offsets for each note
 const noteOffsets = new WeakMap();
 
-const noteColors = ["#FFB3BA", "#BAFFC9", "#BAE1FF", "#FFFFBA"];
+// Define note colors
+const noteColors = [
+  "#FFB3BA", // Pastel Pink
+  "#BAFFC9", // Pastel Green
+  "#BAE1FF", // Pastel Blue
+  "#FFFFBA", // Pastel Yellow
+  "#FFB5E8", // Pastel Magenta
+  "#B5B9FF", // Pastel Purple
+  "#97E1D4", // Pastel Turquoise
+  "#F6CC79", // Pastel Orange
+];
 
 function createNote(
   x,
@@ -623,6 +633,7 @@ function hideNoteMenu() {
 function hideAllContextMenus() {
   hideConnectionMenu();
   hideNoteMenu();
+  colorPalette.classList.remove("visible");
 }
 
 function showNotification(message) {
@@ -652,3 +663,46 @@ function showNotification(message) {
     setTimeout(() => notification.remove(), 300);
   }, 3000);
 }
+
+// Add color change functionality for notes
+const colorMenu = document.querySelector(".context-menu-item.colors");
+const colorPalette = document.getElementById("colorPalette");
+let colorChangeNote = null; // Keep track of note being colored
+
+colorMenu.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent menu from closing immediately
+
+  // Store the note for coloring
+  colorChangeNote = selectedNote;
+
+  // Get the current note menu position
+  const noteMenu = document.getElementById("noteMenu");
+  const rect = noteMenu.getBoundingClientRect();
+
+  // Position the color palette next to the note menu
+  colorPalette.style.left = `${rect.right + 5}px`;
+  colorPalette.style.top = `${rect.top}px`;
+
+  // Hide note menu and show color palette
+  hideNoteMenu();
+  colorPalette.classList.add("visible");
+});
+
+document.querySelectorAll(".color-option").forEach((option) => {
+  option.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent menu from closing
+    if (colorChangeNote) {
+      colorChangeNote.style.backgroundColor = option.dataset.color;
+      colorChangeNote = null; // Clear the reference
+      hideAllContextMenus();
+    }
+  });
+});
+
+// Add click outside listener for color palette
+document.addEventListener("click", (e) => {
+  if (!colorPalette.contains(e.target)) {
+    colorPalette.classList.remove("visible");
+    colorChangeNote = null; // Clear the reference when clicking outside
+  }
+});

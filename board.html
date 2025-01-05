@@ -375,6 +375,45 @@
             color: #ff4444;
         }
 
+        .context-menu-item.colors {
+            position: relative;
+        }
+
+        .context-menu-item.colors:hover {
+            background: var(--menu-hover);
+        }
+
+        .color-palette {
+            position: fixed;
+            background: var(--menu-bg);
+            border-radius: 4px;
+            box-shadow: var(--card-shadow);
+            padding: 8px;
+            gap: 8px;
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            width: max-content;
+            z-index: 1002;
+        }
+
+        .color-palette.visible {
+            display: grid;
+        }
+
+        .color-option {
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .color-option:hover {
+            transform: scale(1.2);
+            border-color: var(--text-color);
+        }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -438,9 +477,28 @@
         </div>
     </div>
     <div class="context-menu" id="noteMenu">
+        <div class="context-menu-item colors">
+            <span>🎨 Change Color</span>
+        </div>
         <div class="context-menu-item delete">
             <span>🗑️ Delete Note</span>
         </div>
+    </div>
+    <div class="color-palette" id="colorPalette">
+        <!-- Pastel Colors -->
+        <div class="color-option" data-color="#FFB3BA" style="background-color: #FFB3BA;" title="Pastel Pink"></div>
+        <div class="color-option" data-color="#BAFFC9" style="background-color: #BAFFC9;" title="Pastel Green"></div>
+        <div class="color-option" data-color="#BAE1FF" style="background-color: #BAE1FF;" title="Pastel Blue"></div>
+        <div class="color-option" data-color="#FFFFBA" style="background-color: #FFFFBA;" title="Pastel Yellow"></div>
+        <div class="color-option" data-color="#FFB5E8" style="background-color: #FFB5E8;" title="Pastel Magenta"></div>
+        <div class="color-option" data-color="#B5B9FF" style="background-color: #B5B9FF;" title="Pastel Purple"></div>
+        <div class="color-option" data-color="#97E1D4" style="background-color: #97E1D4;" title="Pastel Turquoise"></div>
+        <div class="color-option" data-color="#F6CC79" style="background-color: #F6CC79;" title="Pastel Orange"></div>
+        <!-- Vibrant Colors -->
+        <div class="color-option" data-color="#FF9AA2" style="background-color: #FF9AA2;" title="Vibrant Pink"></div>
+        <div class="color-option" data-color="#A8E6CF" style="background-color: #A8E6CF;" title="Vibrant Mint"></div>
+        <div class="color-option" data-color="#DCD3FF" style="background-color: #DCD3FF;" title="Vibrant Lavender"></div>
+        <div class="color-option" data-color="#FFC8A2" style="background-color: #FFC8A2;" title="Vibrant Peach"></div>
     </div>
     <script src="renderer.js"></script>
 </body>
