@@ -8,6 +8,7 @@ const returnHomeBtn = document.getElementById("returnHome");
 const formatToolbar = document.getElementById("formatToolbar");
 const stringTypesMenu = document.getElementById("stringTypesMenu");
 const connectionMenu = document.getElementById("connectionMenu");
+const noteMenu = document.getElementById("noteMenu");
 const boldBtn = document.getElementById("boldBtn");
 const italicBtn = document.getElementById("italicBtn");
 const underlineBtn = document.getElementById("underlineBtn");
@@ -115,7 +116,8 @@ let currentX;
 let currentY;
 let initialX;
 let initialY;
-let selectedNote = null;
+let draggedNote = null; // For dragging
+let selectedNote = null; // For context menu
 let activeTextArea = null;
 let currentStringType = "solid";
 let selectedConnection = null;
@@ -461,10 +463,10 @@ function updateAllConnections() {
 function dragStart(e) {
   if (e.target.className !== "note-header") return;
 
-  selectedNote = e.target.closest(".note");
-  if (!selectedNote) return;
+  draggedNote = e.target.closest(".note");
+  if (!draggedNote) return;
 
-  const offset = noteOffsets.get(selectedNote);
+  const offset = noteOffsets.get(draggedNote);
   initialX = e.clientX - offset.x;
   initialY = e.clientY - offset.y;
 
@@ -476,22 +478,22 @@ function dragStart(e) {
 
 // Move mousemove and mouseup listeners to window level
 window.addEventListener("mousemove", (e) => {
-  if (!isDragging || !selectedNote) return;
+  if (!isDragging || !draggedNote) return;
 
   e.preventDefault();
   currentX = e.clientX - initialX;
   currentY = e.clientY - initialY;
 
   // Update the offset for this specific note
-  noteOffsets.set(selectedNote, { x: currentX, y: currentY });
+  noteOffsets.set(draggedNote, { x: currentX, y: currentY });
 
-  setTranslate(currentX, currentY, selectedNote);
+  setTranslate(currentX, currentY, draggedNote);
   updateAllConnections();
 });
 
 window.addEventListener("mouseup", () => {
   isDragging = false;
-  selectedNote = null;
+  draggedNote = null;
 });
 
 function setTranslate(xPos, yPos, el) {
@@ -538,6 +540,7 @@ board.addEventListener("drop", (e) => {
 // Add context menu functionality
 document.addEventListener("contextmenu", (e) => {
   e.preventDefault(); // Prevent default context menu
+  hideAllContextMenus();
 
   // Check if clicked on a connection path
   if (e.target.tagName === "path") {
@@ -546,19 +549,22 @@ document.addEventListener("contextmenu", (e) => {
       selectedConnection = connection;
       showConnectionMenu(e.clientX, e.clientY);
     }
-  } else {
-    hideConnectionMenu();
+  }
+  // Check if clicked on a note
+  else if (e.target.closest(".note")) {
+    selectedNote = e.target.closest(".note");
+    showNoteMenu(e.clientX, e.clientY);
   }
 });
 
-// Hide context menu when clicking outside
+// Hide context menus when clicking outside
 document.addEventListener("click", () => {
-  hideConnectionMenu();
+  hideAllContextMenus();
 });
 
-// Add delete functionality
+// Add delete functionality for connections
 document
-  .querySelector(".context-menu-item.delete")
+  .querySelector("#connectionMenu .delete")
   .addEventListener("click", () => {
     if (selectedConnection) {
       // Remove the connection element from DOM
@@ -573,6 +579,25 @@ document
     }
   });
 
+// Add delete functionality for notes
+document.querySelector("#noteMenu .delete").addEventListener("click", () => {
+  if (selectedNote) {
+    // Remove all connections associated with this note
+    connections = connections.filter((conn) => {
+      if (conn.start.note === selectedNote || conn.end.note === selectedNote) {
+        conn.element.remove();
+        return false;
+      }
+      return true;
+    });
+
+    // Remove the note from DOM
+    selectedNote.remove();
+    selectedNote = null;
+    hideNoteMenu();
+  }
+});
+
 function showConnectionMenu(x, y) {
   connectionMenu.style.left = `${x}px`;
   connectionMenu.style.top = `${y}px`;
@@ -582,6 +607,22 @@ function showConnectionMenu(x, y) {
 function hideConnectionMenu() {
   connectionMenu.classList.remove("visible");
   selectedConnection = null;
+}
+
+function showNoteMenu(x, y) {
+  noteMenu.style.left = `${x}px`;
+  noteMenu.style.top = `${y}px`;
+  noteMenu.classList.add("visible");
+}
+
+function hideNoteMenu() {
+  noteMenu.classList.remove("visible");
+  selectedNote = null;
+}
+
+function hideAllContextMenus() {
+  hideConnectionMenu();
+  hideNoteMenu();
 }
 
 function showNotification(message) {
