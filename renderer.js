@@ -55,35 +55,13 @@ function createNote(
   textarea.addEventListener("keyup", updateFormatToolbarPosition);
   note.appendChild(textarea);
 
-  // Add connection points
-  const connectionPoints = [
-    {
-      position: "right",
-      x: "100%",
-      y: "50%",
-      transform: "translate(50%, -50%)",
-    },
-    { position: "left", x: "0%", y: "50%", transform: "translate(-50%, -50%)" },
-    { position: "top", x: "50%", y: "0%", transform: "translate(-50%, -50%)" },
-    {
-      position: "bottom",
-      x: "50%",
-      y: "100%",
-      transform: "translate(-50%, 50%)",
-    },
-  ];
-
-  connectionPoints.forEach((point) => {
-    const connectionPoint = document.createElement("div");
-    connectionPoint.className = "connection-point";
-    connectionPoint.dataset.position = point.position;
-    connectionPoint.style.left = point.x;
-    connectionPoint.style.top = point.y;
-    connectionPoint.style.transform = point.transform;
-
-    connectionPoint.addEventListener("click", handleConnectionPointClick);
-    note.appendChild(connectionPoint);
-  });
+  // Add connection point at the pin
+  const connectionPoint = document.createElement("div");
+  connectionPoint.className = "connection-point";
+  connectionPoint.style.right = "15px";
+  connectionPoint.style.top = "4px";
+  connectionPoint.addEventListener("click", handleConnectionPointClick);
+  note.appendChild(connectionPoint);
 
   board.appendChild(note);
 
@@ -215,10 +193,45 @@ function handleConnectionPointClick(e) {
 function createConnection(start, end) {
   const connection = document.createElement("div");
   connection.className = "connection-line";
+
+  // Create SVG element
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.style.position = "absolute";
+  svg.style.top = "0";
+  svg.style.left = "0";
+  svg.style.width = "100%";
+  svg.style.height = "100%";
+  svg.style.pointerEvents = "none";
+
+  // Create path element
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("stroke", "url(#string-gradient)");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("fill", "none");
+
+  // Add gradient definition
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const gradient = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "linearGradient"
+  );
+  gradient.id = "string-gradient";
+  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  gradient.innerHTML = `
+    <stop offset="0%" stop-color="#cc0000" />
+    <stop offset="50%" stop-color="#ff4444" />
+    <stop offset="100%" stop-color="#cc0000" />
+  `;
+  defs.appendChild(gradient);
+  svg.appendChild(defs);
+  svg.appendChild(path);
+
+  connection.appendChild(svg);
   board.appendChild(connection);
 
   connections.push({
     element: connection,
+    path: path,
     start: start,
     end: end,
   });
@@ -229,21 +242,44 @@ function createConnection(start, end) {
 function updateConnection(connection) {
   const startRect = connection.start.element.getBoundingClientRect();
   const endRect = connection.end.element.getBoundingClientRect();
+  const boardRect = board.getBoundingClientRect();
 
-  const startX = startRect.left + startRect.width / 2;
-  const startY = startRect.top + startRect.height / 2;
-  const endX = endRect.left + endRect.width / 2;
-  const endY = endRect.top + endRect.height / 2;
+  // Calculate positions relative to the board
+  const startX = startRect.left + startRect.width / 2 - boardRect.left;
+  const startY = startRect.top + startRect.height / 2 - boardRect.top;
+  const endX = endRect.left + endRect.width / 2 - boardRect.left;
+  const endY = endRect.top + endRect.height / 2 - boardRect.top;
 
-  const length = Math.sqrt(
-    Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)
-  );
-  const angle = (Math.atan2(endY - startY, endX - startX) * 180) / Math.PI;
+  // Calculate the distance and direction
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
 
-  connection.element.style.width = `${length}px`;
-  connection.element.style.left = `${startX}px`;
-  connection.element.style.top = `${startY}px`;
-  connection.element.style.transform = `rotate(${angle}deg)`;
+  // Calculate control points for the curve
+  // The amount of sag increases with distance
+  const sagAmount = Math.min(distance * 0.2, 50);
+  const midX = (startX + endX) / 2;
+  const midY = Math.max(startY, endY) + sagAmount;
+
+  // Create the path
+  const pathData = `
+    M ${startX} ${startY}
+    Q ${midX} ${midY} ${endX} ${endY}
+  `;
+
+  // Update SVG container size and position
+  const svg = connection.path.ownerSVGElement;
+  svg.style.width = `${boardRect.width}px`;
+  svg.style.height = `${boardRect.height}px`;
+
+  // Update the path
+  connection.path.setAttribute("d", pathData);
+
+  // Position the connection div (needed for z-index)
+  connection.element.style.width = `${boardRect.width}px`;
+  connection.element.style.height = `${boardRect.height}px`;
+  connection.element.style.left = "0px";
+  connection.element.style.top = "0px";
 }
 
 function updateAllConnections() {
