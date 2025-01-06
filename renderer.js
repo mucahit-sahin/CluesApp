@@ -25,6 +25,9 @@ const searchContainer = document.getElementById("searchContainer");
 const searchInput = document.getElementById("searchInput");
 const searchResults = document.getElementById("searchResults");
 
+// Add titlebar board name element
+const titlebarBoardName = document.getElementById("titlebarBoardName");
+
 let boardName = null;
 
 // Initialize theme
@@ -50,9 +53,15 @@ if (boardId) {
   });
 }
 
+// Update board name function
+function updateBoardName(name) {
+  boardName = name;
+  titlebarBoardName.textContent = name || "Untitled Board";
+}
+
 function loadBoardData(boardData) {
-  // Store board name
-  boardName = boardData.name;
+  // Store board name and update titlebar
+  updateBoardName(boardData.name);
 
   // Clear existing board
   board.innerHTML = "";
@@ -128,7 +137,7 @@ saveBoardBtn.addEventListener("click", () => {
 saveBoardNameBtn.addEventListener("click", () => {
   const name = boardNameInput.value.trim();
   if (name) {
-    boardName = name;
+    updateBoardName(name);
     boardNameModal.classList.remove("visible");
     saveBoardData();
     showNotification("Board saved successfully!");
@@ -935,3 +944,8 @@ searchInput.addEventListener("input", (e) => {
     searchResults.classList.add("visible");
   }, 300);
 });
+
+// Initialize with default name for new boards
+if (!boardId) {
+  updateBoardName("Untitled Board");
+}

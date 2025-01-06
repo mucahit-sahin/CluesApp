@@ -65,7 +65,17 @@
             background: transparent;
             display: flex;
             align-items: center;
-            padding: 0 10px;
+            padding: 0 15px;
+            font-family: var(--title-font);
+            font-size: 14px;
+            color: var(--text-color);
+            opacity: 0.8;
+            letter-spacing: -0.01em;
+        }
+
+        .titlebar .board-name {
+            font-weight: 500;
+            margin-left: 10px;
         }
 
         .board {
@@ -731,7 +741,9 @@
     </style>
 </head>
 <body>
-    <div class="titlebar"></div>
+    <div class="titlebar">
+        <span class="board-name" id="titlebarBoardName">Untitled Board</span>
+    </div>
     <div class="board" id="board"></div>
     <div class="format-toolbar" id="formatToolbar">
         <button id="boldBtn" title="Bold (Ctrl+B)"><strong>B</strong></button>
