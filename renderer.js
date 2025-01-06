@@ -557,30 +557,117 @@ addNoteBtn.addEventListener("click", () => {
 board.addEventListener("dragover", (e) => {
   e.preventDefault();
   e.stopPropagation();
+  board.classList.add("drag-over");
+});
+
+board.addEventListener("dragleave", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  board.classList.remove("drag-over");
 });
 
 board.addEventListener("drop", (e) => {
   e.preventDefault();
   e.stopPropagation();
+  board.classList.remove("drag-over");
 
-  const files = e.dataTransfer.files;
+  // Handle files from drag and drop
+  handleFiles(e.dataTransfer.files, e.clientX, e.clientY);
+});
+
+// Handle clipboard paste
+document.addEventListener("paste", (e) => {
+  const items = e.clipboardData.items;
+  const files = [];
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      const file = items[i].getAsFile();
+      files.push(file);
+    }
+  }
+
   if (files.length > 0) {
-    const file = files[0];
+    const targetNote = e.target.closest(".note");
+    if (targetNote && targetNote.querySelector("img")) {
+      // If pasting into a note that already has an image, update it
+      handleImageUpdate(files[0], targetNote);
+      e.preventDefault();
+    } else if (e.target.classList.contains("note-content")) {
+      // If pasting into a note without an image, add it
+      handleFiles(files, 0, 0, targetNote);
+      e.preventDefault();
+    } else {
+      // If pasting elsewhere, create new note
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      handleFiles(files, centerX, centerY);
+    }
+  }
+});
+
+// New function to handle updating existing images
+function handleImageUpdate(file, note) {
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const existingImage = note.querySelector("img");
+      if (existingImage) {
+        existingImage.style.opacity = "0";
+        existingImage.src = event.target.result;
+
+        existingImage.onload = () => {
+          existingImage.style.opacity = "1";
+          if (existingImage.naturalWidth > 400) {
+            const aspectRatio =
+              existingImage.naturalHeight / existingImage.naturalWidth;
+            existingImage.style.width = "400px";
+            existingImage.style.height = `${400 * aspectRatio}px`;
+          }
+        };
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Keep the existing handleFiles function for new images
+function handleFiles(files, x, y, targetNote = null) {
+  Array.from(files).forEach((file, index) => {
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const img = document.createElement("img");
         img.src = event.target.result;
-        img.style.maxWidth = "180px";
-        img.style.maxHeight = "180px";
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+        img.style.borderRadius = "4px";
+        img.style.marginBottom = "8px";
+        img.style.opacity = "0";
+        img.style.transition = "opacity 0.3s ease";
 
-        const note = createNote(e.clientX - 100, e.clientY - 100);
-        note.querySelector(".note-content").appendChild(img);
+        img.onload = () => {
+          img.style.opacity = "1";
+          if (img.naturalWidth > 400) {
+            const aspectRatio = img.naturalHeight / img.naturalWidth;
+            img.style.width = "400px";
+            img.style.height = `${400 * aspectRatio}px`;
+          }
+        };
+
+        if (targetNote) {
+          targetNote.querySelector(".note-content").appendChild(img);
+        } else {
+          const offsetX = x + index * 20;
+          const offsetY = y + index * 20;
+          const note = createNote(offsetX - 100, offsetY - 100);
+          note.querySelector(".note-content").appendChild(img);
+        }
       };
       reader.readAsDataURL(file);
     }
-  }
-});
+  });
+}
 
 // Add context menu functionality
 document.addEventListener("contextmenu", (e) => {

@@ -73,6 +73,24 @@
             width: 100vw;
             height: calc(100vh - 38px);
             overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .board.drag-over::after {
+            content: "Drop image here";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: var(--text-color);
+            opacity: 0.5;
+            pointer-events: none;
+            font-family: var(--title-font);
+        }
+
+        .board.drag-over {
+            background-color: rgba(76, 175, 80, 0.1);
         }
 
         .note {
@@ -601,6 +619,18 @@
         .modal button.secondary:hover {
             background: var(--toolbar-hover);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .note img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+
+        .note img:hover {
+            transform: scale(1.02);
         }
     </style>
 </head>
