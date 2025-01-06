@@ -1,4 +1,4 @@
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, shell } = require("electron");
 const newBoardBtn = document.getElementById("newBoard");
 const savedBoardsBtn = document.getElementById("savedBoards");
 const boardsContainer = document.getElementById("boardsContainer");
@@ -92,4 +92,10 @@ savedBoardsBtn.addEventListener("click", () => {
 backButton.addEventListener("click", () => {
   boardsContainer.classList.remove("visible");
   optionsContainer.style.display = "flex";
+});
+
+// Handle GitHub link click
+document.querySelector(".github-info a").addEventListener("click", (e) => {
+  e.preventDefault();
+  shell.openExternal(e.currentTarget.href);
 });
