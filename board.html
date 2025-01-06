@@ -641,6 +641,93 @@
         .note img:hover {
             transform: scale(1.02);
         }
+
+        .search-container {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 10px 20px;
+            box-shadow: var(--card-shadow);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            width: 300px;
+        }
+
+        .search-container.visible {
+            display: flex;
+        }
+
+        .search-container input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: var(--ui-font);
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .search-container input::placeholder {
+            color: var(--secondary-text);
+        }
+
+        .search-results {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .search-results.visible {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: var(--menu-hover);
+        }
+
+        .search-result-item .highlight {
+            background-color: rgba(255, 68, 68, 0.2);
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+
+        .note.highlight {
+            animation: highlightNote 1s ease;
+        }
+
+        @keyframes highlightNote {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: var(--card-shadow);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+            }
+        }
     </style>
 </head>
 <body>
@@ -711,6 +798,11 @@
                 <button class="primary" id="saveBoardName">Save</button>
             </div>
         </div>
+    </div>
+    <div class="search-container" id="searchContainer">
+        <span>🔍</span>
+        <input type="text" placeholder="Search notes..." id="searchInput">
+        <div class="search-results" id="searchResults"></div>
     </div>
     <script src="renderer.js"></script>
 </body>

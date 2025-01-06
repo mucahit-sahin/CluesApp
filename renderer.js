@@ -20,6 +20,11 @@ const boardNameInput = document.getElementById("boardNameInput");
 const saveBoardNameBtn = document.getElementById("saveBoardName");
 const cancelBoardNameBtn = document.getElementById("cancelBoardName");
 
+// Add search elements
+const searchContainer = document.getElementById("searchContainer");
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+
 let boardName = null;
 
 // Initialize theme
@@ -827,4 +832,106 @@ document.addEventListener("click", (e) => {
     colorPalette.classList.remove("visible");
     colorChangeNote = null; // Clear the reference when clicking outside
   }
+});
+
+// Search functionality
+searchBtn.addEventListener("click", () => {
+  searchContainer.classList.toggle("visible");
+  if (searchContainer.classList.contains("visible")) {
+    searchInput.focus();
+  }
+});
+
+// Close search when clicking outside
+document.addEventListener("click", (e) => {
+  if (!searchContainer.contains(e.target) && e.target !== searchBtn) {
+    searchContainer.classList.remove("visible");
+    searchResults.classList.remove("visible");
+  }
+});
+
+// Prevent search container from closing when clicking inside it
+searchContainer.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+let searchTimeout;
+searchInput.addEventListener("input", (e) => {
+  clearTimeout(searchTimeout);
+  const searchTerm = e.target.value.trim().toLowerCase();
+
+  // Add small delay to prevent searching on every keystroke
+  searchTimeout = setTimeout(() => {
+    if (searchTerm.length < 2) {
+      searchResults.classList.remove("visible");
+      return;
+    }
+
+    const notes = Array.from(document.querySelectorAll(".note"));
+    const matchingNotes = notes.filter((note) => {
+      const content = note
+        .querySelector(".note-content")
+        .textContent.toLowerCase();
+      return content.includes(searchTerm);
+    });
+
+    // Clear previous results
+    searchResults.innerHTML = "";
+
+    if (matchingNotes.length === 0) {
+      searchResults.innerHTML =
+        '<div class="search-result-item">No results found</div>';
+    } else {
+      matchingNotes.forEach((note) => {
+        const content = note.querySelector(".note-content").textContent;
+        const index = content.toLowerCase().indexOf(searchTerm);
+        const start = Math.max(0, index - 30);
+        const end = Math.min(content.length, index + searchTerm.length + 30);
+        let preview = content.slice(start, end);
+
+        if (start > 0) preview = "..." + preview;
+        if (end < content.length) preview = preview + "...";
+
+        // Highlight the matching term
+        const highlightedPreview = preview.replace(
+          new RegExp(searchTerm, "gi"),
+          (match) => `<span class="highlight">${match}</span>`
+        );
+
+        const resultItem = document.createElement("div");
+        resultItem.className = "search-result-item";
+        resultItem.innerHTML = highlightedPreview;
+
+        resultItem.addEventListener("click", () => {
+          // Remove previous highlights
+          document.querySelectorAll(".note.highlight").forEach((n) => {
+            n.classList.remove("highlight");
+          });
+
+          // Add highlight animation to the note
+          note.classList.add("highlight");
+
+          // Scroll note into view
+          note.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+
+          // Clear search
+          searchInput.value = "";
+          searchResults.classList.remove("visible");
+          searchContainer.classList.remove("visible");
+
+          // Remove highlight class after animation
+          setTimeout(() => {
+            note.classList.remove("highlight");
+          }, 1000);
+        });
+
+        searchResults.appendChild(resultItem);
+      });
+    }
+
+    searchResults.classList.add("visible");
+  }, 300);
 });
