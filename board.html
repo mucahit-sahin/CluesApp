@@ -95,7 +95,7 @@
 
         .note {
             position: absolute;
-            min-width: 200px;
+            width: 250px;
             min-height: 200px;
             border-radius: 8px;
             box-shadow: var(--card-shadow);
@@ -148,7 +148,16 @@
             color: var(--note-text);
             cursor: text;
             overflow-y: auto;
+            overflow-x: hidden;
             letter-spacing: 0.01em;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .note-content:empty::before {
+            content: attr(placeholder);
+            color: var(--secondary-text);
+            pointer-events: none;
         }
 
         .format-toolbar {
