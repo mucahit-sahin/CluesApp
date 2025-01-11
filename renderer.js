@@ -543,13 +543,29 @@ window.addEventListener("mousemove", (e) => {
   if (!isDragging || !draggedNote) return;
 
   e.preventDefault();
-  currentX = e.clientX - initialX;
-  currentY = e.clientY - initialY;
+
+  // Calculate new position
+  let newX = e.clientX - initialX;
+  let newY = e.clientY - initialY;
+
+  // Get board dimensions
+  const boardRect = board.getBoundingClientRect();
+  const noteRect = draggedNote.getBoundingClientRect();
+
+  // Add bounds checking
+  // Left boundary
+  newX = Math.max(0, newX);
+  // Right boundary (subtract note width to keep it fully visible)
+  newX = Math.min(boardRect.width - noteRect.width, newX);
+  // Top boundary (account for titlebar height)
+  newY = Math.max(0, newY);
+  // Bottom boundary (subtract note height to keep it fully visible)
+  newY = Math.min(boardRect.height - noteRect.height, newY);
 
   // Update the offset for this specific note
-  noteOffsets.set(draggedNote, { x: currentX, y: currentY });
+  noteOffsets.set(draggedNote, { x: newX, y: newY });
 
-  setTranslate(currentX, currentY, draggedNote);
+  setTranslate(newX, newY, draggedNote);
   updateAllConnections();
 });
 
