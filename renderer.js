@@ -113,7 +113,7 @@ function saveBoardData() {
 
   const boardData = {
     id: boardId || Date.now().toString(),
-    name: boardName || `Board ${new Date().toLocaleDateString()}`,
+    name: boardName,
     notes,
     connections: connectionData,
   };
@@ -123,8 +123,8 @@ function saveBoardData() {
 
 // Event listeners for save and return
 saveBoardBtn.addEventListener("click", () => {
-  if (!boardId && !boardName) {
-    // First time saving, show modal
+  if (!boardName) {
+    // Show modal if no board name is set
     boardNameModal.classList.add("visible");
     boardNameInput.focus();
   } else {
@@ -139,16 +139,19 @@ saveBoardNameBtn.addEventListener("click", () => {
   if (name) {
     updateBoardName(name);
     boardNameModal.classList.remove("visible");
+    boardNameInput.value = ""; // Clear the input
     saveBoardData();
     showNotification("Board saved successfully!");
   } else {
     boardNameInput.classList.add("error");
+    boardNameInput.focus();
   }
 });
 
 cancelBoardNameBtn.addEventListener("click", () => {
   boardNameModal.classList.remove("visible");
-  boardNameInput.value = "";
+  boardNameInput.value = ""; // Clear the input
+  boardNameInput.classList.remove("error"); // Remove error state if present
 });
 
 // Handle board saved response
@@ -944,8 +947,3 @@ searchInput.addEventListener("input", (e) => {
     searchResults.classList.add("visible");
   }, 300);
 });
-
-// Initialize with default name for new boards
-if (!boardId) {
-  updateBoardName("Untitled Board");
-}

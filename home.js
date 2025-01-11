@@ -49,7 +49,7 @@ async function loadSavedBoards() {
       <div class="title">${board.name}</div>
       <div class="date">Last edited: ${new Date(
         board.lastEdited
-      ).toLocaleDateString()}</div>
+      ).toLocaleString()}</div>
       <button class="delete-btn" title="Delete Board">×</button>
     `;
 
